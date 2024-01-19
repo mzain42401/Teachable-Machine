@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teachable Machine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+
+
+    <!-- header  -->
+    <nav class="navbar">
+        <div class="logo">
+            <p>Teachable Machine</p>
+        </div>
+        <ul id="navRef">
+            <li>
+                <a onClick={toggleIcons} href="/">Home</a>
+            </li>
+            
+            </li>
+            <li>
+                <a onClick={toggleIcons} href="./samples.html">Examples</a>
+            </li>
+            <button class="getstart"><a href="https://teachablemachine.withgoogle.com/train">Get Started</a></button>
+        </ul>
+        <div class="navToggleBtn">
+            <i onclick="toggleIcons()" id="bar" class="fa-solid fa-bars "></i>
+        </div>
+    </nav>
+
+
+
+
+    <section class="text-gray-600 body-font">
+        <div class="container mx-auto flex px-5 py-24 items-center justify-center flex-col">
+          
+          <div class="text-center lg:w-2/3 w-full pt-20">
+            <h1 class="title-font sm:text-4xl text-3xl mb-4 font-medium text-gray-900">Image recognition between Dogs and Cats</h1>
+            <p class="mb-8 leading-relaxed">Image recognition, or computer vision, is an area of artificial intelligence focused on developing algorithms that can interpret visual information from images or videos. The goal is to enable machines to recognize patterns, objects, and features in visual data, mimicking human visual perception. This technology is applied in diverse fields such as facial recognition, autonomous vehicles, and medical imaging, where the ability to interpret and respond to visual information is essential.</p>
+            <div class="webcam-container text-black  w-full flex justify-center items-center flex-col">
+                <div id="webcam-container">
+
+                </div>
+                <div id="label-container" class="font-semibold text-xl"></div>
+
+            </div>
+            <div class="flex justify-center mt-8">
+              <button class="inline-flex text-white bg-[#1967d2] border-0 py-2 px-6 focus:outline-none  rounded text-lg" type="button" onclick="init()">Start</button>
+              <button class="ml-4 inline-flex text-gray-700 bg-gray-100 border-0 py-2 px-6 focus:outline-none hover:bg-gray-200 rounded text-lg"><a href="./samples.html">Cancle</a></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+
+
+
+
+
+
+
+      <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+      <script type="text/javascript">
+          // More API functions here:
+          // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+      
+          // the link to your model provided by Teachable Machine export panel
+          const URL = "https://teachablemachine.withgoogle.com/models/-xdWLTbuC/";
+      
+          let model, webcam, labelContainer, maxPredictions;
+      
+          // Load the image model and setup the webcam
+          async function init() {
+              const modelURL = URL + "model.json";
+              const metadataURL = URL + "metadata.json";
+      
+              // load the model and metadata
+              // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+              // or files from your local hard drive
+              // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+              model = await tmImage.load(modelURL, metadataURL);
+              maxPredictions = model.getTotalClasses();
+      
+              // Convenience function to setup a webcam
+              const flip = true; // whether to flip the webcam
+              webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+              await webcam.setup(); // request access to the webcam
+              await webcam.play();
+              window.requestAnimationFrame(loop);
+      
+              // append elements to the DOM
+              document.getElementById("webcam-container").appendChild(webcam.canvas);
+              labelContainer = document.getElementById("label-container");
+              for (let i = 0; i < maxPredictions; i++) { // and class labels
+                  labelContainer.appendChild(document.createElement("div"));
+              }
+          }
+      
+          async function loop() {
+              webcam.update(); // update the webcam frame
+              await predict();
+              window.requestAnimationFrame(loop);
+          }
+      
+          // run the webcam image through the image model
+          async function predict() {
+              // predict can take in an image, video or canvas html element
+              const prediction = await model.predict(webcam.canvas);
+              for (let i = 0; i < maxPredictions; i++) {
+                  const classPrediction =
+                      prediction[i].className + ": " + (prediction[i].probability.toFixed(1))/1*100 + " %";
+                  labelContainer.childNodes[i].innerHTML = classPrediction;
+              }
+          }
+      </script>
+      
+</body>
+
+</html>
